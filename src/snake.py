@@ -2,6 +2,7 @@ import pygame
 from enum import Enum
 from typing import List
 
+# SNAKE ASSETS
 BODY_BOTTOMLEFT = pygame.image.load('./assets/body_bottomleft.png')
 BODY_BOTTOMRIGHT = pygame.image.load('./assets/body_bottomright.png')
 BODY_HORIZONTAL = pygame.image.load('./assets/body_horizontal.png')
@@ -50,9 +51,11 @@ class Snake():
         default_tail = SnakeFragment(board_max_width//2+2, board_max_height//2, TAIL_UP)
 
         self.body = [default_head, default_body, default_tail]
+
         self.board_max_width = board_max_width
         self.board_max_height = board_max_height
         self.square_size = square_size
+
         self.direction = Direction.W
         self.enlarge = False
 
@@ -88,7 +91,9 @@ class Snake():
             new_body.append(self.body[i])
 
         if self.enlarge:
-            new_body.append(self.body[-2])
+            tail_x, tail_y = self.body[-1].pos
+            new_tail = SnakeFragment(tail_x, tail_y)
+            new_body.append(new_tail)
 
         for i in range(1, len(new_body)-1):
             new_body[i].image = self.get_image('body', new_body[i-1].pos, new_body[i].pos, new_body[i+1].pos)
@@ -154,7 +159,7 @@ class Snake():
         
         head_x, head_y = self.body[0].pos
 
-        if not (1 <= head_x <= self.board_max_width - 1) or not (0 <= head_y <= self.board_max_height - 1):
+        if not (1 <= head_x <= self.board_max_width) or not (0 <= head_y <= self.board_max_height - 1):
             return False
         
         body_positions = set([fragment.pos for fragment in self.body[1:]])

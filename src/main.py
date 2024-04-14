@@ -6,9 +6,9 @@ from fruit import Fruit
 pygame.init()
 
 # CONST VALUES
-SCREEN_WIDTH = 800
+SCREEN_WIDTH = 400
 SCREEN_WIDTH_SQUARES = SCREEN_WIDTH // 40
-SCREEN_HEIGHT = 640
+SCREEN_HEIGHT = 440
 SCREEN_HEIGHT_SQUARES = SCREEN_HEIGHT // 40
 SQUARE_SIZE = 40
 GREEN = (38, 173, 40)
@@ -77,7 +77,7 @@ def main():
 
         if not fruits:
             fruits += 1
-            fruit = Fruit(SCREEN_HEIGHT_SQUARES-1, SCREEN_WIDTH_SQUARES, SQUARE_SIZE)
+            fruit = Fruit(SCREEN_HEIGHT_SQUARES-1, SCREEN_WIDTH_SQUARES, SQUARE_SIZE, snake.body)
 
         if not snake.check_bounds():
             break
