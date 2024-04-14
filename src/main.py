@@ -51,13 +51,14 @@ def draw_screen(snake, fruit, score):
 
 def handle_movement_keys(snake):
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_w]:
+    print(keys[pygame.K_w], snake.direction)
+    if keys[pygame.K_w] and snake.direction.name != 'S':
         snake.change_direction('w')
-    if keys[pygame.K_d]:
+    if keys[pygame.K_d] and snake.direction.name != 'A':
         snake.change_direction('d')
-    if keys[pygame.K_s]:
+    if keys[pygame.K_s] and snake.direction.name != 'W':
         snake.change_direction('s')
-    if keys[pygame.K_a]:
+    if keys[pygame.K_a] and snake.direction.name != 'D':
         snake.change_direction('a')
 
 def main():
