@@ -39,7 +39,6 @@ def draw_screen(snake, fruit, score):
     text_rect = text.get_rect()
     text_rect.center = (SCREEN_WIDTH // 2, 20)
 
-    # Blit the text onto the screen
     screen.blit(text, text_rect)
 
     if fruit:
@@ -51,7 +50,6 @@ def draw_screen(snake, fruit, score):
 
 def handle_movement_keys(snake):
     keys = pygame.key.get_pressed()
-    print(keys[pygame.K_w], snake.direction)
     if keys[pygame.K_w] and snake.direction.name != 'S':
         snake.change_direction('w')
     if keys[pygame.K_d] and snake.direction.name != 'A':

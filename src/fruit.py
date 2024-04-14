@@ -5,7 +5,7 @@ APPLE = pygame.image.load('./assets/apple.png')
 
 class Fruit:
     def __init__(self, board_max_width: int, board_max_height: int, square_size: int):
-        self.x = random.randint(0, board_max_width - 1)
+        self.x = random.randint(1, board_max_width - 1)
         self.y = random.randint(0, board_max_height - 1)
         self.board_max_width = board_max_width
         self.board_max_height = board_max_height
