@@ -24,24 +24,15 @@ class Direction(Enum):
     D = (0,1)
 
 class SnakeFragment():
-    def __init__(self, x: int, y: int, direction: Direction = 'W', image = None) -> None:
+    def __init__(self, x: int, y: int, image = None) -> None:
         self.x = x
         self.y = y
-        self.direction = direction
         self.image = image
 
     @property
     def pos(self):
         return (self.x, self.y)
     
-    @property
-    def direction(self):
-        return self._direction
-    
-    @direction.setter
-    def direction(self, new_direction):
-        self._direction = new_direction
-
     @property
     def image(self):
         return self._image
@@ -54,18 +45,16 @@ class Snake():
     
     def __init__(self, board_max_width: int, board_max_height: int, square_size: int) -> None:
 
-        default_head = SnakeFragment(board_max_width//2, board_max_height//2, 'W', HEAD_UP)
-        default_body1 = SnakeFragment(board_max_width//2+1, board_max_height//2, 'W', BODY_VERTICAL)
-        default_body2 = SnakeFragment(board_max_width//2+2, board_max_height//2, 'W', BODY_VERTICAL)
-        default_body3 = SnakeFragment(board_max_width//2+3, board_max_height//2, 'W', BODY_VERTICAL)
-        default_body4 = SnakeFragment(board_max_width//2+4, board_max_height//2, 'W', BODY_VERTICAL)
-        default_tail = SnakeFragment(board_max_width//2+5, board_max_height//2, 'W', TAIL_UP)
+        default_head = SnakeFragment(board_max_width//2, board_max_height//2, HEAD_UP)
+        default_body = SnakeFragment(board_max_width//2+1, board_max_height//2, BODY_VERTICAL)
+        default_tail = SnakeFragment(board_max_width//2+2, board_max_height//2, TAIL_UP)
 
-        self.body = [default_head, default_body1, default_body2, default_body3, default_body4, default_tail]
+        self.body = [default_head, default_body, default_tail]
         self.board_max_width = board_max_width
         self.board_max_height = board_max_height
         self.square_size = square_size
         self.direction = Direction.W
+        self.enlarge = False
 
     @property
     def body(self):
@@ -92,13 +81,14 @@ class Snake():
         move_x, move_y = self.direction.value
         head_x, head_y = self.body[0].pos
 
-        new_head = SnakeFragment(head_x + move_x, head_y + move_y, self.direction, self.get_image('head', self.direction))
+        new_head = SnakeFragment(head_x + move_x, head_y + move_y, self.get_image('head', self.direction))
         new_body = [new_head]
         
         for i in range(0, len(self.body)-1):
-            new_fragment = self.body[i]
-            new_fragment.direction = new_body[i-1].direction
             new_body.append(self.body[i])
+
+        if self.enlarge:
+            new_body.append(self.body[-2])
 
         for i in range(1, len(new_body)-1):
             new_body[i].image = self.get_image('body', new_body[i-1].pos, new_body[i].pos, new_body[i+1].pos)
@@ -124,19 +114,21 @@ class Snake():
                         return HEAD_RIGHT
                     
             case 'body':
-                previous, current, next = directions[0], directions[1], directions[2]
-                if previous[0] - current[0] == 1 and next[1] - current[1] == 1:
-                    return BODY_BOTTOMRIGHT
-                if current[0] - previous[0] == 1 and next[1] - current[1] == 1:
-                    return BODY_TOPRIGHT
-                if current[1] - previous[1] == 1 and next[0] - current[0] == 1:
-                    return BODY_BOTTOMLEFT
-                if current[0] - previous[0] == 1 and current[1] - next[1] == 1:
-                    return BODY_TOPLEFT
-                if previous[1] == current[1] == next[1]:
-                    return BODY_VERTICAL
-                else:
+                prev_x, prev_y = directions[0][0] - directions[1][0], directions[0][1] - directions[1][1]
+                next_x, next_y = directions[2][0] - directions[1][0], directions[2][1] - directions[1][1]
+
+                if prev_x == next_x:
                     return BODY_HORIZONTAL
+                elif prev_y == next_y:
+                    return BODY_VERTICAL
+                elif (prev_y == -1 and next_x == -1) or (prev_x == -1 and next_y == -1):
+                    return BODY_TOPLEFT
+                elif (prev_y == 1 and next_x == -1) or (prev_x == -1 and next_y == 1):
+                    return BODY_TOPRIGHT
+                elif (prev_y == -1 and next_x == 1) or (prev_x == 1 and next_y == -1):
+                    return BODY_BOTTOMLEFT
+                elif (prev_x == 1 and next_y == 1) or (prev_y == 1 and next_x == 1):
+                    return BODY_BOTTOMRIGHT
                 
             case 'tail':
                 previous, tail = directions[0], directions[1]
@@ -149,14 +141,24 @@ class Snake():
                 else:
                     return TAIL_LEFT
 
-    def check(self):
+    def check_fruit(self, fruit):
+        
+        if (self.body[0].pos == fruit.pos):
+            self.enlarge = True
+            return True
+        
+        self.enlarge = False
+        return False
+
+    def check_bounds(self):
         
         head_x, head_y = self.body[0].pos
 
-        if not ((0 < head_x <= self.board_max_width) and (0 < head_y <= self.board_max_height)):
+        if not (1 <= head_x <= self.board_max_width - 1) or not (0 <= head_y <= self.board_max_height - 1):
             return False
         
-        if (head_x, head_y) in self.body:
+        body_positions = set([fragment.pos for fragment in self.body[1:]])
+        if (head_x, head_y) in body_positions:
             return False
 
         return True
@@ -164,5 +166,5 @@ class Snake():
     def draw(self, screen: pygame.display):
         for fragment in self.body:
             frag_x, frag_y = fragment.pos
-            screen.blit(fragment.image, ((frag_y-1)*self.square_size, (frag_x-1)*self.square_size))
+            screen.blit(fragment.image, (frag_y*self.square_size, frag_x*self.square_size))
             
