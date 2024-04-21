@@ -1,5 +1,6 @@
 # to-do
 from collections import deque
+from snakeAI import SnakeAI
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
@@ -14,7 +15,8 @@ class DQNAgent:
         self.memory = deque(maxlen=MAX_MEMORY)
 
     def get_state(self, game):
-        pass
+        
+        head = game.snake
 
     def remember(self, state, action, reward, next_state, done):
         pass

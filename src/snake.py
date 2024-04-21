@@ -42,7 +42,7 @@ class SnakeFragment():
     def image(self, new_image):
         self._image = new_image
 
-class Snake():
+class Snake:
     
     def __init__(self, board_max_width: int, board_max_height: int, square_size: int) -> None:
 
@@ -155,7 +155,7 @@ class Snake():
         self.enlarge = False
         return False
 
-    def check_bounds(self):
+    def check_collission(self):
         
         head_x, head_y = self.body[0].pos
 
