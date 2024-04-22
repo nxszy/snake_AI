@@ -12,24 +12,35 @@ BATCH_SIZE = 1000
 LR = 0.001
 
 class DQNAgent:
-    def __init__(self):
+    def __init__(self, episodes=500):
         self.n_games = 0
-        self.epsilon = 0 # randomness (explore -> exploit)
+        self.episodes = episodes
+
+        self.epsilon = 1.0 # randomness (explore -> exploit)
+        self.epsilon_min = 0.05
+        self.epsilon_decay = self.epsilon_min / self.epsilon
+        self.epsilon_decay = self.epsilon_decay ** (1. / float(self.episodes))
+
         self.gamma = 0.9 # discount rate (influence of next rewards on the learning process)
 
         self.memory = deque(maxlen=MAX_MEMORY)
 
-        self.model = Linear_QNet(11, 256, 4)
+        self.model = Linear_QNet(11, 256, 3)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
+
+    def update_epsilon(self):
+        
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
 
     def get_state(self, game):
         
         head_x, head_y = game.snake.body[0].pos
         fruit_x, fruit_y = game.fruit.pos
-        point_d_x, point_d_y = head_x + 1, head_y
-        point_a_x, point_a_y = head_x - 1, head_y
-        point_w_x, point_w_y = head_x, head_y - 1
-        point_s_x, point_s_y = head_x, head_y + 1
+        point_d_x, point_d_y = head_x, head_y + 1
+        point_a_x, point_a_y = head_x, head_y - 1
+        point_w_x, point_w_y = head_x - 1, head_y 
+        point_s_x, point_s_y = head_x + 1, head_y
 
         dir_d = game.snake.direction.name == "D"
         dir_a = game.snake.direction.name == "A"
@@ -38,23 +49,23 @@ class DQNAgent:
 
         state = [
             # danger straight
-            (dir_d and game.snake.check_collision(point_d_x, point_d_y)) or
-            (dir_a and game.snake.check_collision(point_a_x, point_a_y)) or
-            (dir_w and game.snake.check_collision(point_w_x, point_w_y)) or
-            (dir_s and game.snake.check_collision(point_s_x, point_s_y)),
+            (dir_d and not (game.snake.check_bound_collision(point_d_x, point_d_y) or game.snake.check_body_collision(point_d_x, point_d_y))) or
+            (dir_a and not (game.snake.check_bound_collision(point_a_x, point_a_y) or game.snake.check_body_collision(point_a_x, point_a_y))) or
+            (dir_w and not (game.snake.check_bound_collision(point_w_x, point_w_y) or game.snake.check_body_collision(point_w_x, point_w_y))) or
+            (dir_s and not (game.snake.check_bound_collision(point_s_x, point_s_y) or game.snake.check_body_collision(point_s_x, point_s_y))),
 
             # danger right
-            (dir_d and game.snake.check_collision(point_s_x, point_s_y)) or
-            (dir_a and game.snake.check_collision(point_w_x, point_w_y)) or
-            (dir_w and game.snake.check_collision(point_d_x, point_d_y)) or
-            (dir_s and game.snake.check_collision(point_a_x, point_a_y)),
+            (dir_d and not (game.snake.check_bound_collision(point_s_x, point_s_y) or game.snake.check_body_collision(point_s_x, point_s_y))) or
+            (dir_a and not (game.snake.check_bound_collision(point_w_x, point_w_y) or game.snake.check_body_collision(point_w_x, point_w_y))) or
+            (dir_w and not (game.snake.check_bound_collision(point_d_x, point_d_y) or game.snake.check_body_collision(point_d_x, point_d_y))) or
+            (dir_s and not (game.snake.check_bound_collision(point_a_x, point_a_y) or game.snake.check_body_collision(point_a_x, point_a_y))),
 
-            # danger left
-            (dir_d and game.snake.check_collision(point_w_x, point_w_y)) or
-            (dir_a and game.snake.check_collision(point_s_x, point_s_y)) or
-            (dir_w and game.snake.check_collision(point_a_x, point_a_y)) or
-            (dir_s and game.snake.check_collision(point_d_x, point_d_y)),
-
+            # danger left 
+            (dir_d and not (game.snake.check_bound_collision(point_w_x, point_w_y) or game.snake.check_body_collision(point_w_x, point_w_y))) or
+            (dir_a and not (game.snake.check_bound_collision(point_s_x, point_s_y) or game.snake.check_body_collision(point_s_x, point_s_y))) or
+            (dir_w and not (game.snake.check_bound_collision(point_a_x, point_a_y) or game.snake.check_body_collision(point_a_x, point_a_y))) or
+            (dir_s and not (game.snake.check_bound_collision(point_d_x, point_d_y) or game.snake.check_body_collision(point_d_x, point_d_y))),
+ 
             dir_d,
             dir_a,
             dir_w,
@@ -81,17 +92,19 @@ class DQNAgent:
 
         self.trainer.train_step(states, actions, rewards, next_states, dones)
 
+        self.update_epsilon()
+
     def train_short_memory(self, state, action, reward, next_state, done):
         self.trainer.train_step(state, action, reward, next_state, done)
 
     def get_action(self, state):
 
-        move = [0,0,0,0]
+        move = [0,0,0]
         
         self.epsilon = 100 - self.n_games
 
         if random.randint(0,200) < self.epsilon:
-            idx = random.randint(0,3)
+            idx = random.randint(0,2)
             move[idx] = 1
         else:
             state0 = torch.tensor(state, dtype=torch.float)
@@ -106,7 +119,7 @@ def train():
     plot_mean_scores = [] # średnia z prób
     total_score = 0
     record = 0
-    agent = DQNAgent()
+    agent = DQNAgent(250)
     game = gameAI()
 
     while True:
@@ -141,7 +154,7 @@ def train():
                 record = score
                 agent.model.save()
             
-            print('Game', agent.n_games, '.Score: ', score, '.Record: ', record)
+            print('Game:', agent.n_games, 'Score:', score, 'Record:', record)
 
             plot_scores.append(score)
             total_score += score
