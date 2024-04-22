@@ -1,6 +1,6 @@
 import pygame
 import sys
-from snake import Snake, SnakeFragment
+from snake import Snake, SnakeFragment, Direction
 from fruit import Fruit
 
 pygame.init()
@@ -21,12 +21,12 @@ font = pygame.font.SysFont(None, 36)
 
 class SnakeAI(Snake):
     
-    def check_collission(self, pos=None):
+    def check_collision(self, pos_x, pos_y):
         
-        if not pos:
+        if not pos_x:
             head_x, head_y = self.body[0].pos
         else:
-            head_x, head_y = pos
+            head_x, head_y = pos_x, pos_y
 
         if not (1 <= head_x <= self.board_max_width) or not (0 <= head_y <= self.board_max_height - 1):
             return False
@@ -49,15 +49,27 @@ class gameAI:
         self.clock = pygame.time.Clock()
 
         self.fruit = Fruit(SCREEN_HEIGHT_SQUARES-1, SCREEN_WIDTH_SQUARES, SQUARE_SIZE, self.snake.body)
+        self.reset()
+
+    def reset(self):
+        # init game state
+        self.snake.direction = Direction.W
+
+        self.snake = SnakeAI(SCREEN_HEIGHT_SQUARES-1, SCREEN_WIDTH_SQUARES, SQUARE_SIZE)
+
+        self.score = 0
+        self.fruit = Fruit(SCREEN_HEIGHT_SQUARES-1, SCREEN_WIDTH_SQUARES, SQUARE_SIZE, self.snake.body)
+        self.frame_iteration = 0
+
 
     def move(self, snake, move):
-        if move == 'W' and snake.direction.name != 'S':
+        if move[0] and snake.direction.name != 'S':
             snake.change_direction('w')
-        if move == 'A' and snake.direction.name != 'D':
+        if move[1] and snake.direction.name != 'D':
             snake.change_direction('a')
-        if move == 'S' and snake.direction.name != 'W':
+        if move[2] and snake.direction.name != 'W':
             snake.change_direction('s')
-        if move == 'D' and snake.direction.name != 'A':
+        if move[3] and snake.direction.name != 'A':
             snake.change_direction('d')
 
     def draw_screen(self, snake, fruit, score):
@@ -89,6 +101,7 @@ class gameAI:
         pygame.display.flip()
 
     def play_step(self, action):
+        self.frame_iteration += 1
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -99,13 +112,13 @@ class gameAI:
 
         self.snake.move()
 
-        if not fruits:
-            fruits += 1
-            self.fruit.generate_position()
+        if not self.fruits:
+            self.fruits += 1
+            self.fruit = Fruit(SCREEN_HEIGHT_SQUARES-1, SCREEN_WIDTH_SQUARES, SQUARE_SIZE, self.snake.body)
 
         reward = 0
         game_over = False
-        if not self.snake.check_collision() or self.frame_iteration > 100*len(self.snake.body):
+        if not self.snake.check_collision(None, None) or self.frame_iteration > 100*len(self.snake.body):
             game_over = True
             reward -= 10
             return reward, game_over, self.score
@@ -117,10 +130,11 @@ class gameAI:
 
         self.draw_screen(self.snake, self.fruit, self.score)
 
-        self.clock.tick(8)
+        self.clock.tick(24)
 
         return reward, game_over, self.score
 
+'''
 if __name__ == '__main__':
     game = gameAI()
 
@@ -131,3 +145,4 @@ if __name__ == '__main__':
             break
     
     print(record)
+'''
