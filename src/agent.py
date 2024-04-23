@@ -17,7 +17,7 @@ class DQNAgent:
         self.episodes = episodes
 
         self.epsilon = 1.0 # randomness (explore -> exploit)
-        self.epsilon_min = 0.05
+        self.epsilon_min = 0.01
         self.epsilon_decay = self.epsilon_min / self.epsilon
         self.epsilon_decay = self.epsilon_decay ** (1. / float(self.episodes))
 
@@ -29,9 +29,6 @@ class DQNAgent:
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
     def update_epsilon(self):
-
-        if self.n_games > self.episodes:
-            self.epsilon = 0
         
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
@@ -122,7 +119,7 @@ def train():
     plot_mean_scores = [] # średnia z prób
     total_score = 0
     record = 0
-    agent = DQNAgent(250)
+    agent = DQNAgent(150)
     game = gameAI()
 
     while True:

@@ -8,9 +8,9 @@ from collections import deque
 pygame.init()
 
 # CONST VALUES
-SCREEN_WIDTH = 600
+SCREEN_WIDTH = 400
 SCREEN_WIDTH_SQUARES = SCREEN_WIDTH // 40
-SCREEN_HEIGHT = 640
+SCREEN_HEIGHT = 440
 SCREEN_HEIGHT_SQUARES = SCREEN_HEIGHT // 40
 SQUARE_SIZE = 40
 GREEN = (38, 173, 40)
@@ -60,9 +60,12 @@ class gameAI:
         self.clock = pygame.time.Clock()
 
         self.fruit = Fruit(SCREEN_HEIGHT_SQUARES-1, SCREEN_WIDTH_SQUARES, SQUARE_SIZE, self.snake.body)
+
+        self.last_moves = deque(maxlen=6)
+        self.last_fruit_pickup = 0
+
         self.reset()
 
-        self.last_moves = deque(maxlen=10)
 
     def reset(self):
         # init game state
@@ -73,6 +76,9 @@ class gameAI:
         self.score = 0
         self.fruit = Fruit(SCREEN_HEIGHT_SQUARES-1, SCREEN_WIDTH_SQUARES, SQUARE_SIZE, self.snake.body)
         self.frame_iteration = 0
+
+        self.last_fruit_pickup = 0
+        self.last_moves.clear()
 
 
     def move(self, move):
@@ -141,25 +147,27 @@ class gameAI:
             game_over = True
             reward -= 10
             return reward, game_over, self.score
-
         if self.snake.check_body_collision(None, None):
             game_over = True
-            reward -= 20
+            reward -= 15
             return reward, game_over, self.score
-
         if self.snake.check_fruit(self.fruit):
             self.fruits -= 1
             self.score += 1
-            reward += 30
+            reward += 20
+            self.last_fruit_pickup = self.frame_iteration
+
+        #if self.frame_iteration - self.last_fruit_pickup > 10:
+        #    reward -= 1
 
         if self.snake.body[0].pos in self.last_moves:
-            reward -= 5
+            reward -= 2
 
         self.draw_screen(self.snake, self.fruit, self.score)
 
         self.last_moves.append(self.snake.body[-1].pos)
 
-        self.clock.tick(100)
+        self.clock.tick(120)
 
         return reward, game_over, self.score
 
