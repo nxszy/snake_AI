@@ -29,6 +29,9 @@ class DQNAgent:
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
     def update_epsilon(self):
+
+        if self.n_games > self.episodes:
+            self.epsilon = 0
         
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
@@ -49,22 +52,22 @@ class DQNAgent:
 
         state = [
             # danger straight
-            (dir_d and not (game.snake.check_bound_collision(point_d_x, point_d_y) or game.snake.check_body_collision(point_d_x, point_d_y))) or
-            (dir_a and not (game.snake.check_bound_collision(point_a_x, point_a_y) or game.snake.check_body_collision(point_a_x, point_a_y))) or
-            (dir_w and not (game.snake.check_bound_collision(point_w_x, point_w_y) or game.snake.check_body_collision(point_w_x, point_w_y))) or
-            (dir_s and not (game.snake.check_bound_collision(point_s_x, point_s_y) or game.snake.check_body_collision(point_s_x, point_s_y))),
+            (dir_d and (game.snake.check_bound_collision(point_d_x, point_d_y) or game.snake.check_body_collision(point_d_x, point_d_y))) or
+            (dir_a and (game.snake.check_bound_collision(point_a_x, point_a_y) or game.snake.check_body_collision(point_a_x, point_a_y))) or
+            (dir_w and (game.snake.check_bound_collision(point_w_x, point_w_y) or game.snake.check_body_collision(point_w_x, point_w_y))) or
+            (dir_s and (game.snake.check_bound_collision(point_s_x, point_s_y) or game.snake.check_body_collision(point_s_x, point_s_y))),
 
             # danger right
-            (dir_d and not (game.snake.check_bound_collision(point_s_x, point_s_y) or game.snake.check_body_collision(point_s_x, point_s_y))) or
-            (dir_a and not (game.snake.check_bound_collision(point_w_x, point_w_y) or game.snake.check_body_collision(point_w_x, point_w_y))) or
-            (dir_w and not (game.snake.check_bound_collision(point_d_x, point_d_y) or game.snake.check_body_collision(point_d_x, point_d_y))) or
-            (dir_s and not (game.snake.check_bound_collision(point_a_x, point_a_y) or game.snake.check_body_collision(point_a_x, point_a_y))),
+            (dir_d and (game.snake.check_bound_collision(point_s_x, point_s_y) or game.snake.check_body_collision(point_s_x, point_s_y))) or
+            (dir_a and (game.snake.check_bound_collision(point_w_x, point_w_y) or game.snake.check_body_collision(point_w_x, point_w_y))) or
+            (dir_w and (game.snake.check_bound_collision(point_d_x, point_d_y) or game.snake.check_body_collision(point_d_x, point_d_y))) or
+            (dir_s and (game.snake.check_bound_collision(point_a_x, point_a_y) or game.snake.check_body_collision(point_a_x, point_a_y))),
 
             # danger left 
-            (dir_d and not (game.snake.check_bound_collision(point_w_x, point_w_y) or game.snake.check_body_collision(point_w_x, point_w_y))) or
-            (dir_a and not (game.snake.check_bound_collision(point_s_x, point_s_y) or game.snake.check_body_collision(point_s_x, point_s_y))) or
-            (dir_w and not (game.snake.check_bound_collision(point_a_x, point_a_y) or game.snake.check_body_collision(point_a_x, point_a_y))) or
-            (dir_s and not (game.snake.check_bound_collision(point_d_x, point_d_y) or game.snake.check_body_collision(point_d_x, point_d_y))),
+            (dir_d and (game.snake.check_bound_collision(point_w_x, point_w_y) or game.snake.check_body_collision(point_w_x, point_w_y))) or
+            (dir_a and (game.snake.check_bound_collision(point_s_x, point_s_y) or game.snake.check_body_collision(point_s_x, point_s_y))) or
+            (dir_w and (game.snake.check_bound_collision(point_a_x, point_a_y) or game.snake.check_body_collision(point_a_x, point_a_y))) or
+            (dir_s and (game.snake.check_bound_collision(point_d_x, point_d_y) or game.snake.check_body_collision(point_d_x, point_d_y))),
  
             dir_d,
             dir_a,
